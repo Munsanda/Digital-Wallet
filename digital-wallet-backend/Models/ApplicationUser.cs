@@ -2,27 +2,17 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
+using Microsoft.AspNetCore.Identity;
 
-namespace DigitalWalletAPI.Models
+namespace digital_wallet_backend.Models
 {
-    public class User
+    public class ApplicationUser :IdentityUser
     {
-        [Key]
-        public int Id { get; set; }
-
         [Required]
         [MaxLength(100)]
-        public string FullName { get; set; }
-
-        [Required]
-        [EmailAddress]
-        public string Email { get; set; }
-
-        [Required]
-        public string PasswordHash { get; set; }
+        public string FullName { get; set; } = string.Empty;
 
         [JsonIgnore] 
         public ICollection<Transaction> Transactions { get; set; } // Payments made
     }
-
 }

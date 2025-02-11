@@ -10,5 +10,6 @@ namespace digital_wallet_backend.Models.Account
 
         [Required(ErrorMessage = "Password is required")]
         public string? Password { get; set; }
+ 
     }
 }

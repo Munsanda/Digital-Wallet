@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 
-namespace DigitalWalletAPI.Models
+namespace digital_wallet_backend.Models
 {
     public class Transaction
         {
