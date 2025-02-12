@@ -19,14 +19,13 @@ namespace digital_wallet_backend.Data
         {
             base.OnModelCreating(modelBuilder);
 
-           base.OnModelCreating(modelBuilder);
-
-            // One ApplicationUser has many Wallets (1-to-many)
+            // One ApplicationUser has one Wallet (1-to-1)
             modelBuilder.Entity<Wallet>()
                 .HasOne(w => w.User)
-                .WithMany()
-                .HasForeignKey(w => w.UserId)
-                .IsRequired();
+                .WithOne(u => u.Wallet)  // Ensure ApplicationUser has a Wallet navigation property
+                .HasForeignKey<Wallet>(w => w.UserId)
+                .IsRequired();  // The relationship is required
+
 
             // One Wallet can have many Transactions as Sender
             modelBuilder.Entity<Transaction>()

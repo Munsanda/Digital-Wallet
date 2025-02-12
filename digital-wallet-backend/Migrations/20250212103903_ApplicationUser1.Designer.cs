@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using digital_wallet_backend.Data;
 
@@ -11,9 +12,11 @@ using digital_wallet_backend.Data;
 namespace digital_wallet_backend.Migrations
 {
     [DbContext(typeof(DigitalWalletDbContext))]
-    partial class DigitalWalletDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250212103903_ApplicationUser1")]
+    partial class ApplicationUser1
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -238,11 +241,6 @@ namespace digital_wallet_backend.Migrations
 
                     b.Property<decimal>("Amount")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
 
                     b.Property<int>("ReceiverWalletId")
                         .HasColumnType("int");

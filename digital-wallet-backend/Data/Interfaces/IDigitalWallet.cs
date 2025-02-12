@@ -2,7 +2,7 @@ using System.Linq.Expressions;
 
 public interface IDigitalWallet<T> where T : class
 {
-    Task<IEnumerable<T>> GetAllAsync(int id);
+    Task<IEnumerable<T>> GetAllAsync<E>(E id);
     Task<T> GetByIdAsync(int id);
 
     Task<T> GetByParameterAsync<P>(P parameter);

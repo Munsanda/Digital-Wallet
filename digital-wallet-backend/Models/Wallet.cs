@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace digital_wallet_backend.Models
 {
@@ -17,5 +18,8 @@ namespace digital_wallet_backend.Models
         [Required]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Balance { get; set; }
+
+        [JsonIgnore] 
+        public ICollection<Transaction> Transactions { get; set; } // Payments made
     }
 }

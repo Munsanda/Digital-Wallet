@@ -3,22 +3,17 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 
-namespace digital_wallet_backend.Models
+namespace digital_wallet_backend.DTOs
 {
-    public class Transaction
+    public class TransactionDTO
         {
-            [Key]
-            public int Id { get; set; }
-
             [Required]
             [ForeignKey("SenderWallet")]
             public int SenderWalletId { get; set; }
-            public Wallet SenderWallet { get; set; }
 
             [Required]
             [ForeignKey("ReceiverWallet")]
             public int ReceiverWalletId { get; set; }
-            public Wallet ReceiverWallet { get; set; }
 
             [Required]
             [MaxLength(100)]

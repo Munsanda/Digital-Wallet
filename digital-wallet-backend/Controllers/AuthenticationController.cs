@@ -7,6 +7,7 @@ using System.Text;
 using digital_wallet_backend.Models.Account;
 using Microsoft.EntityFrameworkCore;
 using digital_wallet_backend.Models;
+using digital_wallet_backend.Services;
 
 namespace digital_wallet_backend.Controllers
 {
@@ -15,17 +16,20 @@ namespace digital_wallet_backend.Controllers
     public class AuthenticateController : ControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IDigitalWallet<Wallet> _walletService;
         private readonly RoleManager<IdentityRole> _roleManager; // Fixed RoleManager type
         private readonly IConfiguration _configuration;
 
         public AuthenticateController(
             UserManager<ApplicationUser> userManager,
+            IDigitalWallet<Wallet> walletService,
             RoleManager<IdentityRole> roleManager, // Fixed RoleManager type
             IConfiguration configuration)
         {
             _userManager = userManager;
             _roleManager = roleManager;
             _configuration = configuration;
+            _walletService = walletService;
         }
 
         [HttpPost]
@@ -60,7 +64,7 @@ namespace digital_wallet_backend.Controllers
             return Unauthorized(new { Message = "Invalid phone number or password" });
         }
 
-        [HttpPost]
+       [HttpPost]
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
@@ -76,12 +80,30 @@ namespace digital_wallet_backend.Controllers
                 SecurityStamp = Guid.NewGuid().ToString()
             };
 
+            // Step 1: Create and save the user first
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "User creation failed! Please try again." });
 
+            // Step 2: Now that the user is saved, create the wallet
+            var wallet = new Wallet
+            {
+                Balance = 0,
+                UserId = user.Id // Now user.Id exists
+            };
+
+            await _walletService.CreateAsync(wallet);
+
+            // Step 3: Update the user to link the WalletId
+            user.WalletId = wallet.Id.ToString();
+            var updateResult = await _userManager.UpdateAsync(user);
+
+            if (!updateResult.Succeeded)
+                return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "Error linking wallet to user" });
+
             return Ok(new { Message = "User created successfully!" });
         }
+
 
 
         [HttpPost]
