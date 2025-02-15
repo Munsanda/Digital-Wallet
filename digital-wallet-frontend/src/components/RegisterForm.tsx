@@ -1,24 +1,42 @@
-import React, { useState } from 'react';
-import { User, Lock, Mail } from 'lucide-react';
+import React, { useState } from "react";
+import { User, Lock, Phone } from "lucide-react";
+import { register } from "../services/apiService"; // Ensure this exists
+import { RegisterCredentials } from "../types";
 
 interface RegisterFormProps {
-  onRegister: (name: string, email: string, password: string) => void;
   onSwitchToLogin: () => void;
 }
 
-export function RegisterForm({ onRegister, onSwitchToLogin }: RegisterFormProps) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+export function RegisterForm({ onSwitchToLogin }: RegisterFormProps) {
+  const [fullName, setFullName] = useState("");
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
     if (password !== confirmPassword) {
-      alert('Passwords do not match');
+      setError("Passwords do not match.");
       return;
     }
-    onRegister(name, email, password);
+
+    const registerData: RegisterCredentials = {
+      fullName,
+      phoneNumber,
+      password,
+    };
+
+    try {
+      const response = await register(registerData);
+      console.log("Registration successful:", response.data);
+      onSwitchToLogin(); // Redirect to login after successful registration
+    } catch (error) {
+      setError("Registration failed. Please try again.");
+      console.error("Registration error:", error);
+    }
   };
 
   return (
@@ -34,9 +52,11 @@ export function RegisterForm({ onRegister, onSwitchToLogin }: RegisterFormProps)
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
+          {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
+
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div>
-              <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="fullName" className="block text-sm font-medium text-gray-700">
                 Full Name
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
@@ -44,33 +64,33 @@ export function RegisterForm({ onRegister, onSwitchToLogin }: RegisterFormProps)
                   <User className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  id="name"
+                  id="fullName"
                   type="text"
                   required
                   className="block w-full pl-10 sm:text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
                   placeholder="John Doe"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
                 />
               </div>
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                Email address
+              <label htmlFor="phoneNumber" className="block text-sm font-medium text-gray-700">
+                Phone Number
               </label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail className="h-5 w-5 text-gray-400" />
+                  <Phone className="h-5 w-5 text-gray-400" />
                 </div>
                 <input
-                  id="email"
-                  type="email"
+                  id="phoneNumber"
+                  type="tel"
                   required
                   className="block w-full pl-10 sm:text-sm border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="+260XXXXXXXXX"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
                 />
               </div>
             </div>

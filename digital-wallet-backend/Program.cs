@@ -15,13 +15,18 @@ ConfigurationManager configuration = builder.Configuration;
 // Add services to the container.
 // Add CORS
 builder.Services.AddCors(options =>
-    {
-        options.AddPolicy("AllowSpecificOrigin",
-            builder => builder.WithOrigins("http://localhost:3000")
-                            .AllowCredentials()
-                            .AllowAnyHeader()
-                            .AllowAnyMethod());
-    });
+{
+    options.AddPolicy("AllowFrontend",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:5173")
+                  .AllowAnyMethod()
+                  .AllowAnyHeader()
+                  .AllowCredentials();
+        });
+});
+
+
 
 
 // Adding Authentication
@@ -73,6 +78,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+app.UseCors("AllowFrontend");
 
 app.UseHttpsRedirection();
 

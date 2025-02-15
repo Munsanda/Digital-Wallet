@@ -1,7 +1,7 @@
 export interface User {
   id: string;
   name: string;
-  email: string;
+  phoneNumber: string;
   balance: number;
   avatar: string;
 }
@@ -20,3 +20,16 @@ export interface AuthState {
   isAuthenticated: boolean;
   user: User | null;
 }
+
+export interface loginCredentials {
+  phoneNumber: string;
+  password: string;
+}
+
+export interface RegisterCredentials {
+  fullName: string;
+  phoneNumber: string;
+  password: string;
+}
+
+
