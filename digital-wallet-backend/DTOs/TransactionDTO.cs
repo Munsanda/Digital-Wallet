@@ -17,6 +17,8 @@ namespace digital_wallet_backend.DTOs
             [ForeignKey("ReceiverWallet")]
             public int ReceiverWalletId { get; set; }
 
+            public string ReceiverWalletName { get; set; }
+
             [Required]
             [MaxLength(100)]
             public string Description { get; set; } = "Money for ";

@@ -107,7 +107,9 @@ namespace digital_wallet_backend.Controllers
             // Retrieve the wallet linked to this user
             var wallet = await _walletService.GetByUserIdAsync(userId);
 
-            var transactions = await _transactionService.GetAllAsync(wallet.Id);
+            var transactions = await _transactionService.GetAllTransactionsWithReceiverWalletAsync(wallet.Id);
+
+
             var paginatedTransactions = transactions
                 .OrderByDescending(t => t.Timestamp)
                 .Skip((page - 1) * pageSize)
