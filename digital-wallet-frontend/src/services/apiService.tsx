@@ -1,78 +1,79 @@
 import axios from 'axios';
-import { Navigate  } from 'react-router-dom';
-import { loginCredentials, RegisterCredentials } from '../types';
+
+import { loginCredentials, RegisterCredentials, User, Transaction } from '../types';
 
 
-const token = localStorage.getItem('token');
 
-const api = axios.create({
-    baseURL: 'http://localhost:5029/api', // Replace with your .NET API URL
-     headers: {
-       'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-     },
-    
-});
+  const api = axios.create({
+    baseURL: "http://localhost:5029/api", // Replace with your .NET API URL
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
 
-// api.interceptors.response.use(
-//     response => response, // Pass successful responses
-//     error => {
-//         if (error.response?.status === 401) {
-//             console.error("Unauthorized: Redirecting to login...");
-//             // Redirect to login or perform logout
-//             window.location.href = '/auth'; // Redirect to the login page
-//         } 
-//         else if (error.response?.status === 403) {
-//             console.error("Forbidden: Insufficient permissions.");
-//             // Show a "not allowed" message to the user
-//             window.location.href = '/auth'; // Redirect to the login page
-//         }
-//         else if (error.response?.status === 401 && error.response?.data?.message === "Token expired") {
-//             console.error("Session expired. Redirecting to login...");
-//             window.location.href = '/auth'; // Redirect to the login page
-//         }
-        
-//         return Promise.reject(error); // Reject other errors
-//     }
-// );
+  api.interceptors.request.use(async (config) => {
+    const token = localStorage.getItem('authToken');
+    console.log("Token in the apiservice",token);
+    if (token) config.headers.Authorization = `Bearer ${token}`;
+    return config;
+  });
+
+  export const login = async (loginCredentials: loginCredentials) => {
+    try {
+      const response = await api.post("authenticate/login", loginCredentials);
+      if (response.data) {
+        localStorage.setItem("authToken", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+
+        //navigate("/dashboard");
+      }
+      return response;
+    } catch (error) {
+      console.error("Login failed", error);
+      throw error;
+    }
+  };
+
+  export const fetchUsers = async (query: string) => {
+    const response = await api.get(`Wallet/recipients?query=${query}`);
+    console.log(response.data);
+    return response.data;
+  }
 
 
-export const login = (loginCredentials: loginCredentials) => api.post(`authenticate/login`, loginCredentials);
+  export const register = (RegisterCredentials: RegisterCredentials) => 
+    api.post(`authenticate/register`, RegisterCredentials);
 
-export const register = (RegisterCredentials: RegisterCredentials) => api.post(`authenticate/register`, RegisterCredentials);
-
-//export const registerAdmin = (adminDetails) => api.post(`authenticate/register-admin`, adminDetails);
-
-export const logout = async () => {
-    //const token = localStorage.getItem('token');
+  export const logout = () => {
     localStorage.removeItem("authToken");
-    // return api.get('/authenticate/logout', {
-    //     headers: {
-    //         'Authorization': `Bearer ${token}`
-    //     }
-    // }); 
-    console.log("logged out")
-};
+    localStorage.removeItem("user");
+    window.location.href = '/auth';
+  };
 
-// 🔹 Fetch User Data
-export const fetchUser = async (userId: string): Promise<User> => {
-    const response = await api.get(`/users/${userId}`);
+
+
+  export const fetchUser = async (): Promise<User> => {
+    const response = await api.get(`Wallet/user`);
+    return response.data;
+  };
+
+  export const fetchBalance = async () => {
+    const response = await api.get('/wallet/balance');
+    return response.data;
+  }
+  
+
+  export const fetchTransactions = async (): Promise<Transaction[]> => {
+    const response = await api.get(`/wallet/transactions`);
     return response.data;
   };
   
-  // 🔹 Fetch Transactions
-  export const fetchTransactions = async (userId: string): Promise<Transaction[]> => {
-    const response = await api.get(`/transactions?userId=${userId}`);
-    return response.data;
-  };
-  
-  // 🔹 Send Money
-  export const sendMoney = async (senderId: string, receiverId: string, amount: number, description: string) => {
-    const response = await api.post("/transactions/send", {
-      senderId,
-      receiverId,
+  export const sendMoney = async (receiverWalletId: string, amount: number, description: string) => {
+    const response = await api.post("/wallet/transfer", {
+      receiverWalletId,
       amount,
       description,
+      timestamp: new Date().toISOString()
     });
     return response.data;
   };

@@ -1,15 +1,13 @@
 import React, { useState } from "react";
 import {  useNavigate } from 'react-router-dom';
-import { User, Lock } from "lucide-react";
-import { login } from "../services/apiService"; // Ensure this exists
-import { loginCredentials, AuthState } from "../types";
+import { loginCredentials } from "../types";
+import { login } from "../services/apiService";
 
 interface LoginFormProps {
   onSwitchToRegister: () => void;
-  setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-export function LoginForm({ onSwitchToRegister, setIsAuthenticated }: LoginFormProps) {
+export function LoginForm({ onSwitchToRegister }: LoginFormProps) {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -25,18 +23,19 @@ export function LoginForm({ onSwitchToRegister, setIsAuthenticated }: LoginFormP
     };
 
     try {
-      const response = await login(loginData); 
-      console.log("Login successful:", response.data);
-      localStorage.setItem("authToken", response.data.token);
+      const success = await login(loginData);
+      if (success) {
+        console.log("Login successful, redirecting...");
 
-      setIsAuthenticated(true);
-
-      navigate('/dashboard');
-
+        //window.location.reload();
+          navigate("/dashboard"); 
+      } else {
+        alert("Login failed. Please check your credentials.");
+      }
     } catch (error) {
-      setError("Invalid phone number or password.");
-      console.error("Login error:", error);
+      alert("Error logging in");
     }
+
   };
 
   return (

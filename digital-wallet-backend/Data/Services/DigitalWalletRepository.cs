@@ -33,6 +33,11 @@ public class DigitalWalletRepository<T> : IDigitalWallet<T> where T : class
         return await _dbSet.FirstOrDefaultAsync(e => EF.Property<P>(e, "Id").Equals(parameter));
     }
 
+    public async Task<T> GetByUserIdAsync(string userId)
+    {
+        return await _dbSet.FirstOrDefaultAsync(e => EF.Property<int>(e, "UserId").Equals(userId));
+    }
+
     public async Task<T> CreateAsync(T entity)
     {
         await _dbSet.AddAsync(entity);

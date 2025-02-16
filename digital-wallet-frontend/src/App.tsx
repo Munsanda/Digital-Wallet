@@ -1,93 +1,102 @@
-import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import { DashboardLayout } from "./components/DashboardLayout";
 import { LoginForm } from "./components/LoginForm";
 import { RegisterForm } from "./components/RegisterForm";
 import { WalletBalance } from "./components/WalletBalance";
 import { TransactionList } from "./components/TransactionList";
+import { Transaction, User } from "./types";
+import { fetchTransactions, fetchUser, logout } from "./services/apiService";
 import { SendMoneyForm } from "./components/SendMoneyForm";
-import { fetchUser } from "../src/services/apiService";
-import { AuthState, Transaction, User  } from "./types";
 
-export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(
-    !!localStorage.getItem("authToken")
-  );
-  const [showRegister, setShowRegister] = useState(false);
+const PrivateRoute = ({ children }: { children: JSX.Element }) => {
+  const token = localStorage.getItem("authToken");  
+
+  return token ? children : <Navigate to="/auth" />;
+};
+
+
+const Dashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
 
+  const fetchData = async () => {
+    try {
+        const response = await fetchUser();
+        setUser(response);
+    } catch {
+        setUser(null);  
+          window.location.href = '/auth';
+    }
+  };
+  
+
   useEffect(() => {
-    const loadUser = async () => {
-      if (isAuthenticated) {
-        try {
-          // Fetch user using the token from localStorage
-          //const userData = await fetchUser();
+    fetchData();
+  }, []);
 
-          const user1: User = {
-            id: "user id",
-            name: "John Doe",
-            phoneNumber: "1234567890",
-            balance: 1000,
-            avatar: "m" // Add a random user avatar
-            }
+  const Transactions = async () => {
+    try {
+      const response = await fetchTransactions();
+      setTransactions(response);
+    } catch {
+      setTransactions([]);
+    }
+  };
 
-          setUser(user1);
-        } catch (error) {
-          console.error("Error fetching user:", error);
-          // If fetching user fails, log out the user
-          setIsAuthenticated(false);
-          localStorage.removeItem("authToken");
-        }
-      }
-    };
+  useEffect(() => {
+    Transactions();
+  }, []);
 
-    loadUser();
-  }, [isAuthenticated]);
+  if (!user) return null;
 
   return (
-    <Router>
-      <div>
-        <Routes>
-          <Route
-            path="/dashboard"
-            element={
-              isAuthenticated && user ? (
-                <DashboardLayout
-                  user={user}
-                  onLogout={() => {
-                    setIsAuthenticated(false);
-                    localStorage.removeItem("authToken");
-                  }}
-                  setIsAuthenticated={setIsAuthenticated}
-                >
-                  <WalletBalance balance={user.balance} />
-                  <TransactionList transactions={transactions} currentUser={user} />
-                  {/* <SendMoneyForm /> */}
-                </DashboardLayout>
-              ) : (
-                <Navigate to="/auth" />
-              )
-            }
-          />
-          <Route
-            path="/auth"
-            element={
-              isAuthenticated ? (
-                <Navigate to="/dashboard" />
-              ) : showRegister ? (
-                <RegisterForm onSwitchToLogin={() => setShowRegister(false)} />
-              ) : (
-                <LoginForm
-                  setIsAuthenticated={setIsAuthenticated}
-                  onSwitchToRegister={() => setShowRegister(true)}
-                />
-              )
-            }
-          />
-          <Route path="*" element={<Navigate to="/auth" />} />
-        </Routes>
+    <DashboardLayout user={user} onLogout={logout}>
+      <div className="space-y-6">
+        <WalletBalance balance={user.balance} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h2 className="text-lg font-medium text-gray-900 mb-4">Send Money</h2>
+            <SendMoneyForm reloadBalance={fetchData} reloadTransactions={Transactions} currentUser = {user} /> 
+          </div>
+          <div>
+            <h2 className="text-lg font-medium text-gray-900 mb-4 ">Recent Transactions</h2>
+            <TransactionList transactions={transactions} currentUser={user} />
+          </div>
+        </div>
       </div>
+    </DashboardLayout>
+  );
+};
+
+const AuthPage = () => {
+  const [showRegister, setShowRegister] = React.useState(false);
+  
+  return showRegister ? (
+    <RegisterForm onSwitchToLogin={() => setShowRegister(false)} />
+  ) : (
+    <LoginForm onSwitchToRegister={() => setShowRegister(true)} />
+  );
+};
+
+export default function App() {
+  
+  return (
+    <Router>
+          <Routes>
+            <Route
+              path="/dashboard"
+              element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              }
+            />
+            <Route path="/auth" element={<AuthPage />} />
+            <Route path="*" element={<Navigate to="/auth" />} />
+          </Routes>
     </Router>
   );
 }
+
+

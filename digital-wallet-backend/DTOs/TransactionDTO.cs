@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 
 namespace digital_wallet_backend.DTOs
@@ -8,6 +9,7 @@ namespace digital_wallet_backend.DTOs
     public class TransactionDTO
         {
             [Required]
+            [JsonIgnore]
             [ForeignKey("SenderWallet")]
             public int SenderWalletId { get; set; }
 

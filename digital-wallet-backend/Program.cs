@@ -8,8 +8,6 @@ using digital_wallet_backend.Models;
 using digital_wallet_backend.Services;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
 ConfigurationManager configuration = builder.Configuration;
 
 // Add services to the container.
@@ -27,6 +25,31 @@ builder.Services.AddCors(options =>
 });
 
 
+
+
+
+
+
+
+builder.Services.AddDbContext<DigitalWalletDbContext>(db => db.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+builder.Services.AddTransient<DigitalWalletDbContext>(); 
+
+builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+
+builder.Services.AddScoped(typeof(IDigitalWallet<>), typeof(DigitalWalletRepository<>)); // Register generic service
+
+
+builder.Services.AddControllers();
+
+// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+builder.Services.AddEndpointsApiExplorer();
+
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
+    .AddEntityFrameworkStores<DigitalWalletDbContext>()
+    .AddDefaultTokenProviders();
 
 
 // Adding Authentication
@@ -50,25 +73,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
-    .AddEntityFrameworkStores<DigitalWalletDbContext>()
-    .AddDefaultTokenProviders();
-
-
-builder.Services.AddDbContext<DigitalWalletDbContext>(db => db.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-builder.Services.AddTransient<DigitalWalletDbContext>(); 
-
-builder.Services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
-
-builder.Services.AddScoped(typeof(IDigitalWallet<>), typeof(DigitalWalletRepository<>)); // Register generic service
-
-
-
-builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
@@ -82,7 +87,9 @@ app.UseCors("AllowFrontend");
 
 app.UseHttpsRedirection();
 
+app.UseAuthentication();
 app.UseAuthorization();
+
 
 app.MapControllers();
 

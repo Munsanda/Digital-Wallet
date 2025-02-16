@@ -44,9 +44,12 @@ namespace digital_wallet_backend.Controllers
                 var authClaims = new List<Claim>
                 {
                     new Claim(ClaimTypes.Name, user.UserName),
+                    new Claim(ClaimTypes.MobilePhone, user.PhoneNumber),
                     new Claim("UserId", user.Id.ToString()),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 };
+
+                //Console.WriteLine("user: " + user.Id.ToString());
 
                 foreach (var userRole in userRoles)
                 {
@@ -58,13 +61,24 @@ namespace digital_wallet_backend.Controllers
                 return Ok(new
                 {
                     token = new JwtSecurityTokenHandler().WriteToken(token),
-                    expiration = token.ValidTo
+                    expiration = DateTimeOffset.Parse(token.ValidTo.ToString())
                 });
             }
             return Unauthorized(new { Message = "Invalid phone number or password" });
         }
 
-       [HttpPost]
+        // [HttpPost("refresh-token")]
+        // public IActionResult RefreshToken()
+        // {
+        //     var refreshToken = Request.Cookies["refreshToken"];
+        //     if (refreshToken == null) return Unauthorized();
+
+        //     var newAccessToken = jwtservice.GenerateAccessTokenFromRefreshToken(refreshToken);
+        //     return Ok(new { accessToken = newAccessToken });
+        // }
+
+
+        [HttpPost]
         [Route("register")]
         public async Task<IActionResult> Register([FromBody] RegisterModel model)
         {
@@ -80,21 +94,21 @@ namespace digital_wallet_backend.Controllers
                 SecurityStamp = Guid.NewGuid().ToString()
             };
 
-            // Step 1: Create and save the user first
+            // Create and save the user first
             var result = await _userManager.CreateAsync(user, model.Password);
             if (!result.Succeeded)
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "User creation failed! Please try again." });
 
-            // Step 2: Now that the user is saved, create the wallet
+            //  create the wallet
             var wallet = new Wallet
             {
-                Balance = 0,
+                Balance = 5,
                 UserId = user.Id // Now user.Id exists
             };
 
             await _walletService.CreateAsync(wallet);
 
-            // Step 3: Update the user to link the WalletId
+            //  Update the user to link the WalletId
             user.WalletId = wallet.Id.ToString();
             var updateResult = await _userManager.UpdateAsync(user);
 
@@ -105,7 +119,6 @@ namespace digital_wallet_backend.Controllers
         }
 
 
-
         [HttpPost]
         [Route("register-admin")]
         public async Task<IActionResult> RegisterAdmin([FromBody] RegisterModel model)
@@ -114,7 +127,7 @@ namespace digital_wallet_backend.Controllers
             if (userExists != null)
                 return StatusCode(StatusCodes.Status400BadRequest, new { Message = "Phone number already registered!" });
 
-            // Fix: Use ApplicationUser instead of IdentityUser
+           
             ApplicationUser user = new()
             {
                 UserName = model.PhoneNumber,
@@ -126,7 +139,7 @@ namespace digital_wallet_backend.Controllers
             if (!result.Succeeded)
                 return StatusCode(StatusCodes.Status500InternalServerError, new { Message = "User creation failed! Please try again." });
 
-            // Fix: Ensure roles exist before assigning them
+            
             if (!await _roleManager.RoleExistsAsync(UserRoles.Admin))
                 await _roleManager.CreateAsync(new IdentityRole(UserRoles.Admin)); // Fixed role creation
 

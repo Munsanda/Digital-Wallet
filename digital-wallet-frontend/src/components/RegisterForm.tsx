@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { User, Lock, Phone } from "lucide-react";
-import { register } from "../services/apiService"; // Ensure this exists
 import { RegisterCredentials } from "../types";
+import { register } from "../services/apiService";
 
 interface RegisterFormProps {
   onSwitchToLogin: () => void;

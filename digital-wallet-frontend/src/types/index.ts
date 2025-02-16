@@ -32,4 +32,9 @@ export interface RegisterCredentials {
   password: string;
 }
 
+export interface Recipient {
+  id: string;
+  fullName: string;
+}
+
 

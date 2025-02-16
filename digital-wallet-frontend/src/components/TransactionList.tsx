@@ -1,14 +1,15 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ArrowUpRight, ArrowDownLeft, Eye, EyeOff } from 'lucide-react';
 import { Transaction, User } from '../types';
 
 interface TransactionListProps {
-  transactions: Transaction[];
   currentUser: User;
+  transactions: Transaction[];
 }
 
-export function TransactionList({ transactions, currentUser }: TransactionListProps) {
+export function TransactionList({ currentUser,  transactions }: TransactionListProps) {
   const [isBlurred, setIsBlurred] = useState(false);
+
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -20,7 +21,7 @@ export function TransactionList({ transactions, currentUser }: TransactionListPr
   };
 
   return (
-    <div className="bg-white shadow overflow-hidden sm:rounded-md">
+    <div className="bg-white shadow overflow-hidden sm:rounded-md m-1">
       <div className="px-4 py-3 border-b border-gray-200 flex justify-end">
         <button
           onClick={() => setIsBlurred(!isBlurred)}
@@ -39,6 +40,7 @@ export function TransactionList({ transactions, currentUser }: TransactionListPr
           )}
         </button>
       </div>
+      <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg shadow-sm p-4">
       <ul role="list" className="divide-y divide-gray-200">
         {transactions.map((transaction) => {
           const isSender = transaction.senderId === currentUser.id;
@@ -78,5 +80,6 @@ export function TransactionList({ transactions, currentUser }: TransactionListPr
         })}
       </ul>
     </div>
+  </div>
   );
 }

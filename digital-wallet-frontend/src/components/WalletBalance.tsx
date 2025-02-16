@@ -20,7 +20,7 @@ export function WalletBalance({ balance }: WalletBalanceProps) {
               </dt>
               <dd className="flex items-baseline">
                 <div className="text-2xl font-semibold text-gray-900">
-                  ${balance.toFixed(2)}
+                  ZMW {balance.toFixed(2)}
                 </div>
               </dd>
             </dl>
