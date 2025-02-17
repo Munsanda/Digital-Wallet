@@ -1,5 +1,5 @@
 export interface User {
-  id: string;
+  walletId: string;
   name: string;
   phoneNumber: string;
   balance: number;
@@ -8,8 +8,8 @@ export interface User {
 
 export interface Transaction {
   id: string;
-  senderId: string;
-  receiverId: string;
+  senderWalletId: string;
+  receiverWalletId: string;
   amount: number;
   type: 'send' | 'receive';
   description: string;

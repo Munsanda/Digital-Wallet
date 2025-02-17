@@ -151,6 +151,15 @@ namespace digital_wallet_backend.Controllers
 
             transaction.SenderWalletId = senderWallet.Id;
 
+            var receivingUser = await _context.Set<ApplicationUser>()
+                .Include(u => u.Wallet)
+                .FirstOrDefaultAsync(u => u.Wallet.Id == transaction.ReceiverWalletId);
+
+            if (receivingUser == null)
+                return NotFound("Receiving user not found");
+
+           // transaction.Description = receivingUser.FullName + " for: " + transaction.Description;
+
             await _transactionService.CreateAsync(_mapper.Map<Transaction>(transaction));
 
             return Ok(new { message = "Transaction successful", newBalance = senderWallet.Balance });

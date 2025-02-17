@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Recipient, User } from "../types";
 import { fetchUsers, sendMoney } from "../services/apiService";
-import { Send } from 'lucide-react';
-import { Search } from "lucide-react";
+import { Send } from "lucide-react";
 
 interface SendMoneyFormProps {
   currentUser: User;
@@ -12,40 +11,43 @@ interface SendMoneyFormProps {
 
 export function SendMoneyForm({ currentUser, reloadBalance, reloadTransactions }: SendMoneyFormProps) {
   const [receiverId, setReceiverId] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [recipients, setRecipients] = useState<Recipient[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
   const [showDropdown, setShowDropdown] = useState(false);
   const inputRef = useRef<HTMLInputElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
-  // Fetch recipients when user types
+  const isAmountValid = () => {
+    if (amount === "") return true;
+    const num = parseFloat(amount);
+    return !isNaN(num) && num > 0 && num <= currentUser.balance;
+  };
+
+  const isFormValid = () => {
+    return receiverId && isAmountValid() && (description === "" || description.trim().length >= 3);
+  };
+
+  // Fetch recipients when the user types
   useEffect(() => {
     if (searchQuery.length > 1) {
       const fetchRecipients = async () => {
-        
         try {
           const response = await fetchUsers(searchQuery);
-
-          const filteredUsers = response//.filter((user: Recipient) => user.walletId !== currentUser.id);
-
-          setRecipients(filteredUsers);
-          console.log(recipients);
-          
-          setShowDropdown(filteredUsers.length > 0);
+          setRecipients(response);
+          setShowDropdown(response.length > 0);
         } catch {
           setRecipients([]);
           setShowDropdown(false);
         }
-        
       };
       fetchRecipients();
     } else {
       setRecipients([]);
       setShowDropdown(false);
     }
-  }, [searchQuery, currentUser.id]);
+  }, [searchQuery]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -58,7 +60,6 @@ export function SendMoneyForm({ currentUser, reloadBalance, reloadTransactions }
         setShowDropdown(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -67,43 +68,28 @@ export function SendMoneyForm({ currentUser, reloadBalance, reloadTransactions }
     setReceiverId(user.id);
     setSearchQuery(user.fullName);
     setShowDropdown(false);
-  
-    console.log("Selected User ID:", user.id);
-    console.log("Selected User:", user);
   };
-  
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-  
-    if (!receiverId || !amount || !description) {
-      console.warn("Missing required fields");
+    
+    if (!isFormValid()) {
+      console.warn("Invalid form submission");
       return;
     }
-  
-    console.log("Sending money...", {
-      sender: currentUser.id,
-      receiver: receiverId,
-      amount: parseFloat(amount),
-      description,
-    });
-  
+
     try {
-      const response = await sendMoney(receiverId, parseFloat(amount), description);
-      console.log("Response:", response);
+      await sendMoney(receiverId, parseFloat(amount), description);
+      reloadBalance();
+      reloadTransactions();
+      setAmount("");
+      setDescription("");
+      setSearchQuery("");
+      setReceiverId("");
     } catch (error) {
       console.error("Error sending money:", error);
     }
-
-    reloadBalance();
-    reloadTransactions();
-  
-    setAmount("");
-    setDescription("");
-    setSearchQuery("");
-    setReceiverId("");
   };
-  
 
   return (
     <div className="bg-white shadow sm:rounded-lg p-6">
@@ -148,7 +134,9 @@ export function SendMoneyForm({ currentUser, reloadBalance, reloadTransactions }
           <input
             type="number"
             id="amount"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className={`mt-1 block w-full px-3 py-2 border ${
+              isAmountValid() ? "border-gray-300" : "border-red-500"
+            } rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
             placeholder="0.00"
             step="0.01"
             min="0.01"
@@ -157,6 +145,7 @@ export function SendMoneyForm({ currentUser, reloadBalance, reloadTransactions }
             onChange={(e) => setAmount(e.target.value)}
             required
           />
+          {!isAmountValid() && <p className="text-red-500 text-xs">Invalid amount</p>}
         </div>
 
         {/* Description Input */}
@@ -167,23 +156,25 @@ export function SendMoneyForm({ currentUser, reloadBalance, reloadTransactions }
           <input
             type="text"
             id="description"
-            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+            className={`mt-1 block w-full px-3 py-2 border ${
+              description.trim().length >= 3 || description === "" ? "border-gray-300" : "border-red-500"
+            } rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
           />
+          {description.trim().length < 3 && description !== "" && <p className="text-red-500 text-xs">Description too short</p>}
         </div>
 
         {/* Submit Button */}
         <button
           type="submit"
-          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-          disabled={!receiverId || !amount || !description}
+          className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400"
+          disabled={!isFormValid()}
         >
-            <Send className="h-4 w-4 mr-2" />
+          <Send className="h-4 w-4 mr-2" />
           Send Money
         </button>
-
       </form>
     </div>
   );

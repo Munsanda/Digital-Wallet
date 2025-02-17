@@ -1,8 +1,7 @@
-import React from 'react';
-import { Wallet, LogOut } from 'lucide-react';
-import { User } from '../types';
-import { logout } from '../services/apiService';
-
+import React from "react";
+import { Wallet, LogOut } from "lucide-react";
+import { User } from "../types";
+import { logout } from "../services/apiService";
 
 interface DashboardLayoutProps {
   user: User;
@@ -10,7 +9,14 @@ interface DashboardLayoutProps {
   onLogout: () => void;
 }
 
-export function DashboardLayout({ user, children}: DashboardLayoutProps) {
+export function DashboardLayout({ user, children }: DashboardLayoutProps) {
+  const getInitials = (name: string) => {
+    return name
+      .split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -19,16 +25,26 @@ export function DashboardLayout({ user, children}: DashboardLayoutProps) {
           <div className="flex justify-between h-16">
             <div className="flex items-center">
               <Wallet className="h-8 w-8 text-indigo-600" />
-              <span className="ml-2 text-xl font-semibold text-gray-900">DigiWallet</span>
+              <span className="ml-2 text-xl font-semibold text-gray-900">
+                DigiWallet
+              </span>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center">
-                <img
-                  className="h-8 w-8 rounded-full"
-                  src={user.avatar}
-                  alt={user.name}
-                />
-                <span className="ml-2 text-sm font-medium text-gray-700">{user.name}</span>
+                {user.avatar ? (
+                  <img
+                    className="h-8 w-8 rounded-full"
+                    src={user.avatar}
+                    alt={user.name}
+                  />
+                ) : (
+                  <div className="h-8 w-8 flex items-center justify-center rounded-full bg-indigo-600 text-white text-sm font-bold">
+                    {getInitials(user.name)}
+                  </div>
+                )}
+                <span className="ml-2 text-sm font-medium text-gray-700">
+                  {user.name}
+                </span>
               </div>
               <button
                 onClick={logout}

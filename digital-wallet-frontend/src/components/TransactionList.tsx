@@ -10,6 +10,7 @@ interface TransactionListProps {
 export function TransactionList({ currentUser,  transactions }: TransactionListProps) {
   const [isBlurred, setIsBlurred] = useState(false);
 
+  //console.log("current userid", currentUser)
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -43,7 +44,7 @@ export function TransactionList({ currentUser,  transactions }: TransactionListP
       <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg shadow-sm p-4">
       <ul role="list" className="divide-y divide-gray-200">
         {transactions.map((transaction) => {
-          const isSender = transaction.senderId === currentUser.id;
+          const isSender = transaction.senderWalletId === currentUser.walletId;
           
           return (
             <li key={transaction.id}>

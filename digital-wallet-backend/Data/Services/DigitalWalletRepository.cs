@@ -72,8 +72,7 @@ public class DigitalWalletRepository<T> : IDigitalWallet<T> where T : class
         public async Task<IEnumerable<digital_wallet_backend.Models.Transaction>> GetAllTransactionsWithReceiverWalletAsync(int senderId)
         {
             return await _context.Set<digital_wallet_backend.Models.Transaction>()
-            .Where(t => t.SenderWalletId == senderId)
-            //.Include(t => t.ReceiverWallet) // Assuming ReceiverWallet has a navigation property to User
+            .Where(t => t.SenderWalletId == senderId || t.ReceiverWalletId == senderId)
                 
             .ToListAsync();
         }
