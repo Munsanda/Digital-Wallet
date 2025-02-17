@@ -84,7 +84,7 @@ Ensure you have the following installed:
 
 ---
 
-Now, you should have a DigiWallet application running locally!
+Now, you should have a DigiWallet application running locally! Each user will have an initial balance of 5 Kwacha
 
 ![image](https://github.com/user-attachments/assets/fd9a8250-ec70-47bf-ae4b-15be34d63241)
 
