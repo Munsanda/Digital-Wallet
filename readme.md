@@ -86,3 +86,4 @@ Ensure you have the following installed:
 
 Now, you should have a DigiWallet application running locally!
 
+![image](https://github.com/user-attachments/assets/fd9a8250-ec70-47bf-ae4b-15be34d63241)
