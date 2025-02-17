@@ -16,6 +16,8 @@ export function SendMoneyForm({ currentUser, reloadBalance, reloadTransactions }
   const [description, setDescription] = useState("");
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false); // Modal state
+
   const inputRef = useRef<HTMLInputElement | null>(null);
   const dropdownRef = useRef<HTMLDivElement | null>(null);
 
@@ -29,7 +31,6 @@ export function SendMoneyForm({ currentUser, reloadBalance, reloadTransactions }
     return receiverId && isAmountValid() && (description === "" || description.trim().length >= 3);
   };
 
-  // Fetch recipients when the user types
   useEffect(() => {
     if (searchQuery.length > 1) {
       const fetchRecipients = async () => {
@@ -49,35 +50,13 @@ export function SendMoneyForm({ currentUser, reloadBalance, reloadTransactions }
     }
   }, [searchQuery]);
 
-  // Close dropdown when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        inputRef.current !== event.target
-      ) {
-        setShowDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const handleSelectUser = (user: Recipient) => {
     setReceiverId(user.id);
     setSearchQuery(user.fullName);
     setShowDropdown(false);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!isFormValid()) {
-      console.warn("Invalid form submission");
-      return;
-    }
-
+  const handleSubmit = async () => {
     try {
       await sendMoney(receiverId, parseFloat(amount), description);
       reloadBalance();
@@ -86,6 +65,7 @@ export function SendMoneyForm({ currentUser, reloadBalance, reloadTransactions }
       setDescription("");
       setSearchQuery("");
       setReceiverId("");
+      setIsModalOpen(false); // Close modal on success
     } catch (error) {
       console.error("Error sending money:", error);
     }
@@ -94,7 +74,7 @@ export function SendMoneyForm({ currentUser, reloadBalance, reloadTransactions }
   return (
     <div className="bg-white shadow sm:rounded-lg p-6">
       <h3 className="text-lg font-medium text-gray-900">Send Money</h3>
-      <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
+      <form className="mt-5 space-y-4" onSubmit={(e) => e.preventDefault()}>
         {/* Searchable Input */}
         <div className="relative" ref={dropdownRef}>
           <label htmlFor="recipient" className="block text-sm font-medium text-gray-700">
@@ -156,19 +136,17 @@ export function SendMoneyForm({ currentUser, reloadBalance, reloadTransactions }
           <input
             type="text"
             id="description"
-            className={`mt-1 block w-full px-3 py-2 border ${
-              description.trim().length >= 3 || description === "" ? "border-gray-300" : "border-red-500"
-            } rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm`}
+            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
           />
-          {description.trim().length < 3 && description !== "" && <p className="text-red-500 text-xs">Description too short</p>}
         </div>
 
         {/* Submit Button */}
         <button
-          type="submit"
+          type="button"
+          onClick={() => setIsModalOpen(true)}
           className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-gray-400"
           disabled={!isFormValid()}
         >
@@ -176,6 +154,33 @@ export function SendMoneyForm({ currentUser, reloadBalance, reloadTransactions }
           Send Money
         </button>
       </form>
+
+      {/* Confirmation Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg shadow-lg w-96">
+            <h2 className="text-lg font-semibold text-gray-900">Confirm Transfer</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Are you sure you want to send <strong>ZMW {amount}</strong> to <strong>{searchQuery}</strong>?
+            </p>
+
+            <div className="mt-4 flex justify-end space-x-4">
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-md hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSubmit}
+                className="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700"
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
